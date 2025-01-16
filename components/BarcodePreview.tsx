@@ -38,6 +38,7 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
   const [progress, setProgress] = useState(0); // Progress state
   const [showText, setShowText] = useState(true); // State to manage text visibility
   const barcodeRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+  const abortControllerRef = useRef<AbortController | null>(null); // Ref to store AbortController
 
   useEffect(() => {
     const maxBarcodeWidth = A4_WIDTH - 2 * PAGE_MARGIN;
@@ -85,27 +86,49 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
 
   const handleDownloadPDF = async () => {
     setLoading(true);
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "px",
-      format: [A4_WIDTH, A4_HEIGHT],
-    });
+    abortControllerRef.current = new AbortController(); // Create a new AbortController
+    const { signal } = abortControllerRef.current;
 
-    for (let i = 0; i < processedPages.length; i++) {
-      if (i > 0) {
-        pdf.addPage();
-      }
-      const canvas = await html2canvas(previewRef.current!, {
-        scale: 2,
+    try {
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: [A4_WIDTH, A4_HEIGHT],
       });
-      const imgData = canvas.toDataURL("image/png");
-      pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
-      setProgress(((i + 1) / processedPages.length) * 100); // Update progress
-    }
 
-    pdf.save("barcodes.pdf");
-    setLoading(false);
-    setProgress(0); // Reset progress
+      for (let i = 0; i < processedPages.length; i++) {
+        if (signal.aborted) {
+          throw new Error("Download cancelled");
+        }
+        if (i > 0) {
+          pdf.addPage();
+        }
+        const canvas = await html2canvas(previewRef.current!, {
+          scale: 2,
+        });
+        const imgData = canvas.toDataURL("image/png");
+        pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
+        setProgress(((i + 1) / processedPages.length) * 100); // Update progress
+      }
+
+      pdf.save("barcodes.pdf");
+    } catch (error) {
+      if (error instanceof Error && error.message === "Download cancelled") {
+        console.log("Download cancelled");
+      } else {
+        console.error(error);
+      }
+    } finally {
+      setLoading(false);
+      setProgress(0); // Reset progress
+      abortControllerRef.current = null; // Reset AbortController
+    }
+  };
+
+  const handleCancelDownload = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort(); // Cancel the download
+    }
   };
 
   const handlePrint = () => {
@@ -138,6 +161,7 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
         <DownloadControls
           onPrint={handlePrint}
           onDownloadPDF={handleDownloadPDF}
+          onCancelDownload={handleCancelDownload} // Pass cancel handler
           loading={loading}
         />
       </div>

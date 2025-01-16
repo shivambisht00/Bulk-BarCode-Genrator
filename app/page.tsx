@@ -30,8 +30,8 @@ export type BarcodeFormat =
 export default function Home() {
   const [barcodeData, setBarcodeData] = useState<string[]>([]);
   const [settings, setSettings] = useState({
-    width: 2,
-    height: 100,
+    width: 1,
+    height: 30,
     fontSize: 14,
     margin: 10,
     rows: 5,
@@ -163,11 +163,11 @@ export default function Home() {
                   onChange={(e) =>
                     setSettings((s) => ({
                       ...s,
-                      rows: Math.min(8, Math.max(1, parseInt(e.target.value) || 1)),
+                      rows: Math.min(12, Math.max(1, parseInt(e.target.value) || 1)),
                     }))
                   }
                   min={1}
-                  max={8}
+                  max={12}
                 />
               </div>
 

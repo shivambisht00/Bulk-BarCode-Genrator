@@ -1,15 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { Download, Printer } from "lucide-react";
+import { Download, Printer, X } from "lucide-react";
 
 interface DownloadControlsProps {
   onPrint: () => void;
   onDownloadPDF: () => void;
+  onCancelDownload: () => void; // Add cancel handler prop
   loading: boolean;
 }
 
 export default function DownloadControls({
   onPrint,
   onDownloadPDF,
+  onCancelDownload, // Destructure cancel handler
   loading,
 }: DownloadControlsProps) {
   return (
@@ -22,6 +24,12 @@ export default function DownloadControls({
         <Download className="h-4 w-4 mr-2" />
         {loading ? "Downloading..." : "Download PDF"}
       </Button>
+      {loading && (
+        <Button variant="outline" onClick={onCancelDownload}>
+          <X className="h-4 w-4 mr-2" />
+          Cancel
+        </Button>
+      )}
     </div>
   );
 }
