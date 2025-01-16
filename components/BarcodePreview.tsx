@@ -1,12 +1,11 @@
-"use client";
-
 import { useRef, useState, useEffect } from "react";
-import Barcode from "react-barcode";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Download, Printer, ChevronLeft, ChevronRight } from "lucide-react";
-import generatePDF from "react-to-pdf";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import type { BarcodeFormat } from "@/app/page";
+import PaginationControls from "./PaginationControls";
+import DownloadControls from "./DownloadControls";
+import ProgressBar from "./ProgressBar";
+import BarcodeGrid from "./BarcodeGrid";
 
 interface BarcodePreviewProps {
   barcodeData: string[];
@@ -32,19 +31,17 @@ const PAGE_MARGIN = 20; // 20px margin
 
 export default function BarcodePreview({ barcodeData, settings }: BarcodePreviewProps) {
   const previewRef = useRef<HTMLDivElement>(null);
+  const [processedPages, setProcessedPages] = useState<string[][]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [adjustedSettings, setAdjustedSettings] = useState(settings);
-  const [processedPages, setProcessedPages] = useState<string[][]>([]);
-  const [barcodeRefs] = useState<{ [key: string]: HTMLDivElement | null }>({});
+  const [loading, setLoading] = useState(false); // Loading state
+  const [progress, setProgress] = useState(0); // Progress state
+  const [showText, setShowText] = useState(true); // State to manage text visibility
+  const barcodeRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Calculate maximum dimensions and organize barcodes into pages
   useEffect(() => {
-    const availableWidth = A4_WIDTH - (PAGE_MARGIN * 2);
-    const availableHeight = A4_HEIGHT - (PAGE_MARGIN * 2);
-    const maxBarcodeWidth = Math.floor((availableWidth / settings.cols) - (settings.margin * 2));
-    const maxBarcodeHeight = Math.floor((availableHeight / settings.rows) - (settings.margin * 2) - settings.fontSize);
-
-    // Adjust settings to fit within page
+    const maxBarcodeWidth = A4_WIDTH - 2 * PAGE_MARGIN;
+    const maxBarcodeHeight = A4_HEIGHT - 2 * PAGE_MARGIN;
     const newSettings = {
       ...settings,
       width: Math.min(settings.width, maxBarcodeWidth / 2), // Divide by 2 due to barcode internal multiplier
@@ -86,12 +83,29 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
     setProcessedPages(pages);
   }, [barcodeData, settings]);
 
-  const handleDownloadPDF = () => {
-    if (previewRef.current) {
-      generatePDF(() => previewRef.current, {
-        filename: "barcodes.pdf",
+  const handleDownloadPDF = async () => {
+    setLoading(true);
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "px",
+      format: [A4_WIDTH, A4_HEIGHT],
+    });
+
+    for (let i = 0; i < processedPages.length; i++) {
+      if (i > 0) {
+        pdf.addPage();
+      }
+      const canvas = await html2canvas(previewRef.current!, {
+        scale: 2,
       });
+      const imgData = canvas.toDataURL("image/png");
+      pdf.addImage(imgData, "PNG", 0, 0, A4_WIDTH, A4_HEIGHT);
+      setProgress(((i + 1) / processedPages.length) * 100); // Update progress
     }
+
+    pdf.save("barcodes.pdf");
+    setLoading(false);
+    setProgress(0); // Reset progress
   };
 
   const handlePrint = () => {
@@ -108,41 +122,38 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
     setCurrentPage((prev) => (prev < totalPages - 1 ? prev + 1 : prev));
   };
 
+  const handleToggleText = () => {
+    setShowText((prev) => !prev);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handlePrevPage}
-            disabled={currentPage === 0}
-            size="sm"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <span className="text-sm">
-            Page {currentPage + 1} of {totalPages}
-          </span>
-          <Button
-            variant="outline"
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages - 1}
-            size="sm"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="flex gap-4">
-          <Button variant="outline" onClick={handlePrint}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print
-          </Button>
-          <Button onClick={handleDownloadPDF}>
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPrevPage={handlePrevPage}
+          onNextPage={handleNextPage}
+        />
+        <DownloadControls
+          onPrint={handlePrint}
+          onDownloadPDF={handleDownloadPDF}
+          loading={loading}
+        />
       </div>
+
+      <div className="flex justify-end">
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            checked={showText}
+            onChange={handleToggleText}
+          />
+          <span>Show Text</span>
+        </label>
+      </div>
+
+      {loading && <ProgressBar progress={progress} />}
 
       <div 
         ref={previewRef} 
@@ -155,34 +166,12 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
         }}
       >
         {processedPages[currentPage] && (
-          <div
-            className="grid h-full"
-            style={{
-              gridTemplateColumns: `repeat(${adjustedSettings.cols}, 1fr)`,
-              gridAutoRows: `minmax(0, 1fr)`,
-              gap: '16px',
-            }}
-          >
-            {processedPages[currentPage].map((code, index) => (
-              <div
-                key={`${code}-${index}`}
-                ref={(el) => barcodeRefs[`${code}-${index}`] = el}
-                className="flex items-center justify-center overflow-hidden"
-                style={{ 
-                  padding: `${adjustedSettings.margin}px`,
-                }}
-              >
-                <Barcode
-                  value={code}
-                  width={adjustedSettings.width}
-                  height={adjustedSettings.height}
-                  fontSize={adjustedSettings.fontSize}
-                  margin={0}
-                  format={adjustedSettings.format}
-                />
-              </div>
-            ))}
-          </div>
+          <BarcodeGrid
+            barcodes={processedPages[currentPage]}
+            settings={adjustedSettings}
+            barcodeRefs={barcodeRefs}
+            showText={showText} // Pass showText prop
+          />
         )}
       </div>
     </div>
