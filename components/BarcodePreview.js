@@ -76,8 +76,8 @@ const BarcodePreview = forwardRef(({ barcodeData, settings, currentPage, showTex
       style={{
         width: `${A4_PREVIEW_WIDTH}px`,
         height: `${A4_PREVIEW_HEIGHT}px`,
-        maxWidth: '90vw',
-        maxHeight: '85vh',
+        maxWidth: '95vw',
+        maxHeight: '70vh',
         padding: `${PREVIEW_MARGIN}px`,
         transform: `scale(${PREVIEW_SCALE})`,
         transformOrigin: 'center center',

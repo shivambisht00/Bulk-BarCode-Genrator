@@ -127,30 +127,30 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
+    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 md:p-6">
       <div 
-        className="bg-white rounded-xl shadow-lg mx-auto border-2" 
+        className="bg-white rounded-xl shadow-lg mx-auto border-2 flex flex-col" 
         style={{ 
-          maxWidth: '90vw',
-          minHeight: '95vh',
+          maxWidth: '100%',
+          minHeight: '98vh',
           borderColor: 'rgb(0,185,174)',
           backgroundColor: 'rgb(0,185,174,0.01)'
         }}
       >
         {/* Title Bar */}
-        <div className="p-4 ">
-          <h1 className="text-2xl font-bold text-gray-800">
+        <div className="p-3 sm:p-4 border-b border-[rgb(0,185,174)]">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
             Bulk Barcode Generator
           </h1>
         </div>
 
-        <div className="flex flex-col md:flex-row" style={{ height: 'calc(95vh - 60px)' }}>
-          {/* Left Panel - adjust maxHeight */}
-          <div className="w-full md:w-[320px] border-r border-gray-200 overflow-y-auto" 
-               style={{ maxHeight: 'calc(95vh - 60px)' }}>
+        {/* Main Content */}
+        <div className="flex flex-col lg:flex-row flex-1 h-full">
+          {/* Left Panel */}
+          <div className="w-full lg:w-[320px] border-b lg:border-b-0 lg:border-r border-gray-200 overflow-y-auto">
             {/* Upload Section */}
-            <div className="p-6 border-b border-gray-200">
-              <Button variant="outline" className="w-full bg-white hover:bg-gray-50">
+            <div className="p-3 sm:p-6 border-b border-gray-200">
+              <Button variant="outline" className="w-full">
                 <label className="cursor-pointer flex items-center gap-2 w-full justify-center">
                   <Upload className="h-4 w-4" />
                   Upload CSV
@@ -164,8 +164,8 @@ export default function Home() {
               </Button>
             </div>
 
-            {/* Settings Section */}
-            <div className="p-6 space-y-6 overflow-y-auto">
+            {/* Settings Section - make scrollable on mobile */}
+            <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-h-[50vh] lg:max-h-full overflow-y-auto">
               <div className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-gray-600" />
                 <h2 className="text-lg font-semibold text-gray-800">Barcode Settings</h2>
@@ -284,12 +284,11 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Right Panel - adjust maxHeight */}
-          <div className="flex-1 flex flex-col p-4" 
-               style={{ maxHeight: 'calc(95vh - 60px)' }}>
-            {/* Controls Bar */}
-            <div className="mb-6 flex justify-between items-center pb-6 border-b border-gray-200">
-              <div className="flex items-center gap-4">
+          {/* Right Panel */}
+          <div className="flex-1 flex flex-col p-2 sm:p-4">
+            {/* Controls Bar - make it stack on small screens */}
+            <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 sm:pb-6 border-b border-gray-200">
+              <div className="flex flex-wrap items-center gap-4">
                 <PaginationControls
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -317,8 +316,8 @@ export default function Home() {
             {/* Progress Bar */}
             {loading && <ProgressBar progress={progress} />}
 
-            {/* Preview Area - removed overflow and adjusted container */}
-            <div className="flex-1 flex items-center justify-center py-2">
+            {/* Preview Area - make it scale properly */}
+            <div className="flex-1 flex items-center justify-center overflow-x-auto">
               {barcodeData.length > 0 ? (
                 <BarcodePreview 
                   barcodeData={barcodeData} 
