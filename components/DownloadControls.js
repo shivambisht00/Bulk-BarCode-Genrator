@@ -1,19 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Download, Printer, X } from "lucide-react";
 
-interface DownloadControlsProps {
-  onPrint: () => void;
-  onDownloadPDF: () => void;
-  onCancelDownload: () => void; // Add cancel handler prop
-  loading: boolean;
-}
-
 export default function DownloadControls({
   onPrint,
   onDownloadPDF,
-  onCancelDownload, // Destructure cancel handler
+  onCancelDownload,
   loading,
-}: DownloadControlsProps) {
+}) {
   return (
     <div className="flex gap-4">
       <Button variant="outline" onClick={onPrint}>

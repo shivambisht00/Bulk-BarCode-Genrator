@@ -15,20 +15,8 @@ const BarcodePreview = dynamic(() => import("@/components/BarcodePreview"), {
   ssr: false,
 });
 
-export type BarcodeFormat = 
-  | "CODE128" 
-  | "EAN13" 
-  | "EAN8" 
-  | "EAN5" 
-  | "EAN2" 
-  | "UPC" 
-  | "CODE39" 
-  | "ITF14" 
-  | "MSI" 
-  | "pharmacode";
-
 export default function Home() {
-  const [barcodeData, setBarcodeData] = useState<string[]>([]);
+  const [barcodeData, setBarcodeData] = useState([]);
   const [settings, setSettings] = useState({
     width: 1,
     height: 30,
@@ -36,15 +24,15 @@ export default function Home() {
     margin: 10,
     rows: 5,
     cols: 2,
-    format: "CODE128" as BarcodeFormat,
+    format: "CODE128"
   });
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event) => {
     const file = event.target.files?.[0];
     if (file) {
       Papa.parse(file, {
         complete: (results) => {
-          const codes = results.data.flat().filter(Boolean) as string[];
+          const codes = results.data.flat().filter(Boolean);
           setBarcodeData(codes);
         },
       });
@@ -84,7 +72,7 @@ export default function Home() {
                 <Label>Barcode Type</Label>
                 <Select
                   value={settings.format}
-                  onValueChange={(value: BarcodeFormat) =>
+                  onValueChange={(value) =>
                     setSettings((s) => ({ ...s, format: value }))
                   }
                 >

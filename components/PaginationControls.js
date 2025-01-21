@@ -1,19 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface PaginationControlsProps {
-  currentPage: number;
-  totalPages: number;
-  onPrevPage: () => void;
-  onNextPage: () => void;
-}
-
 export default function PaginationControls({
   currentPage,
   totalPages,
   onPrevPage,
   onNextPage,
-}: PaginationControlsProps) {
+}) {
   return (
     <div className="flex items-center gap-2">
       <Button

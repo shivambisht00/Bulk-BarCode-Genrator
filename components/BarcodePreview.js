@@ -1,44 +1,29 @@
 import { useRef, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import type { BarcodeFormat } from "@/app/page";
 import PaginationControls from "./PaginationControls";
 import DownloadControls from "./DownloadControls";
 import ProgressBar from "./ProgressBar";
 import BarcodeGrid from "./BarcodeGrid";
 
-interface BarcodePreviewProps {
-  barcodeData: string[];
-  settings: {
-    width: number;
-    height: number;
-    fontSize: number;
-    margin: number;
-    rows: number;
-    cols: number;
-    format: BarcodeFormat;
-  };
-}
-
-// A4 size in millimeters
+// A4 size constants
 const A4_WIDTH_MM = 210;
 const A4_HEIGHT_MM = 297;
-// Convert to pixels (1mm = 3.7795275591 pixels at 96 DPI)
 const MM_TO_PX = 3.7795275591;
 const A4_WIDTH = Math.floor(A4_WIDTH_MM * MM_TO_PX);
 const A4_HEIGHT = Math.floor(A4_HEIGHT_MM * MM_TO_PX);
-const PAGE_MARGIN = 20; // 20px margin
+const PAGE_MARGIN = 20;
 
-export default function BarcodePreview({ barcodeData, settings }: BarcodePreviewProps) {
-  const previewRef = useRef<HTMLDivElement>(null);
-  const [processedPages, setProcessedPages] = useState<string[][]>([]);
+export default function BarcodePreview({ barcodeData, settings }) {
+  const previewRef = useRef(null);
+  const [processedPages, setProcessedPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [adjustedSettings, setAdjustedSettings] = useState(settings);
-  const [loading, setLoading] = useState(false); // Loading state
-  const [progress, setProgress] = useState(0); // Progress state
-  const [showText, setShowText] = useState(true); // State to manage text visibility
-  const barcodeRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
-  const abortControllerRef = useRef<AbortController | null>(null); // Ref to store AbortController
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [showText, setShowText] = useState(true);
+  const barcodeRefs = useRef({});
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     const maxBarcodeWidth = A4_WIDTH - 2 * PAGE_MARGIN;
@@ -51,8 +36,8 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
     setAdjustedSettings(newSettings);
 
     // Process barcodes into pages with proper wrapping
-    const pages: string[][] = [];
-    let currentPage: string[] = [];
+    const pages = [];
+    let currentPage = [];
     let currentRow = 0;
     let currentCol = 0;
 
@@ -103,7 +88,7 @@ export default function BarcodePreview({ barcodeData, settings }: BarcodePreview
         if (i > 0) {
           pdf.addPage();
         }
-        const canvas = await html2canvas(previewRef.current!, {
+        const canvas = await html2canvas(previewRef.current, {
           scale: 2,
         });
         const imgData = canvas.toDataURL("image/png");
