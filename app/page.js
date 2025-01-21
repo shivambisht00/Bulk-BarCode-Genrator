@@ -3,15 +3,15 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import { Upload, Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "../components/ui/button";
+import { Card } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Slider } from "../components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import Papa from "papaparse";
 
-const BarcodePreview = dynamic(() => import("@/components/BarcodePreview"), {
+const BarcodePreview = dynamic(() => import("../components/BarcodePreview"), {
   ssr: false,
 });
 
